@@ -6,21 +6,26 @@
     <title>OneVote</title>
     <style>
         :root { --bg: #050505; --card: #111111; --ready: #00ff88; --waiting: #444444; }
-        body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .container { width: 100%; max-width: 400px; padding-bottom: 80px; }
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { font-size: 2.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px; }
-        .subtitle { color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
-        .list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-        .card { background: var(--card); padding: 18px 22px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; min-height: 70px; transition: 0.3s; }
-        .card.ready { border-color: var(--ready); background: #001a0e; box-shadow: 0 0 15px rgba(0,255,136,0.1); }
-        .site-label { font-size: 0.7rem; color: #555; font-weight: bold; text-transform: uppercase; }
+        body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 400px; padding-bottom: 60px; }
+        header { text-align: center; margin-bottom: 15px; }
+        h1 { font-size: 1.8rem; font-weight: 900; margin: 0; letter-spacing: -1px; }
+        .subtitle { color: #666; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+        
+        .list { display: flex; flex-direction: column; gap: 8px; }
+        /* Cartes plus fines ici */
+        .card { background: var(--card); padding: 12px 18px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; min-height: 50px; }
+        .card.ready { border-color: var(--ready); background: #001a0e; }
+        
+        .site-label { font-size: 0.65rem; color: #555; font-weight: bold; text-transform: uppercase; }
         .ready .site-label { color: var(--ready); }
-        .time { font-size: 1.2rem; font-family: monospace; font-weight: bold; color: var(--waiting); }
+        .time { font-size: 1.1rem; font-family: monospace; font-weight: bold; color: var(--waiting); }
         .ready .time { color: var(--ready); }
-        button { display: none; background: white; color: black; border: none; padding: 12px 20px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
+        
+        button { display: none; background: white; color: black; border: none; padding: 8px 15px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
         .ready button { display: block; }
-        footer { position: fixed; bottom: 0; width: 100%; padding: 20px 0; font-size: 0.6rem; color: #222; text-align: center; letter-spacing: 3px; font-weight: bold; background: var(--bg); }
+        
+        footer { position: fixed; bottom: 0; width: 100%; padding: 15px 0; font-size: 0.55rem; color: #222; text-align: center; letter-spacing: 2px; font-weight: bold; background: var(--bg); }
     </style>
 </head>
 <body>
@@ -31,8 +36,13 @@
         </header>
         <div class="list" id="tracker-list"></div>
     </div>
-    <footer>LICENCE BY CLEMANT • V1.4.4</footer>
+    <footer>LICENCE BY CLEMANT • V1.4.6</footer>
+
     <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
         const sites = [{id:1,n:"Site 1",d:86400},{id:2,n:"Site 2",d:10},{id:3,n:"Site 3",d:7200},{id:4,n:"Site 4",d:10800},{id:5,n:"Site 5",d:5400},{id:6,n:"Site 6",d:5400}];
         
         function createCards() {
@@ -68,9 +78,7 @@
                     clearInterval(itv);
                     t.innerText = "READY";
                     c.classList.add('ready');
-                    if (Notification.permission === "granted") {
-                        new Notification("VOTE DISPONIBLE", { body: "Le Site " + id + " est prêt !", icon: "https://oneblockfrance.fr/favicon.ico" });
-                    }
+                    sendNotification(id);
                 } else {
                     const s = Math.floor(d / 1000);
                     const h = Math.floor(s / 3600);
@@ -78,6 +86,19 @@
                     t.innerText = h + "h " + m + "m " + (s % 60) + "s";
                 }
             }, 1000);
+        }
+
+        function sendNotification(id) {
+            if (Notification.permission === "granted") {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification("VOTE DISPONIBLE", {
+                        body: "Le Site " + id + " est prêt !",
+                        icon: "https://oneblockfrance.fr/favicon.ico",
+                        badge: "https://oneblockfrance.fr/favicon.ico",
+                        vibrate: [200, 100, 200]
+                    });
+                });
+            }
         }
         createCards();
     </script>
