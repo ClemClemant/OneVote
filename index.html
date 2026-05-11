@@ -23,7 +23,6 @@
         h1 { font-size: 2.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px; color: var(--accent); }
         .subtitle { color: #666; margin: 5px 0 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; }
         
-        /* Affichage en liste (les unes au-dessus des autres) */
         .list { display: flex; flex-direction: column; gap: 12px; }
         
         .card { 
@@ -34,7 +33,7 @@
         .card.ready { border-color: var(--ready); background: #001a0e; }
         
         .info { text-align: left; }
-        .site-label { font-size: 0.65rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+        .site-label { font-size: 0.7rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
         .ready .site-label { color: var(--ready); }
         
         .time { font-size: 1.1rem; font-family: "SF Mono", monospace; font-weight: 700; color: var(--waiting); }
@@ -66,17 +65,17 @@
     </div>
 
     <footer>
-        LICENSE BY CLEMANT • V1.2
+        LICENSE BY CLEMANT • V1.4
     </footer>
 
     <script>
         const sites = [
-            { id: 1, name: "Site Principal", duration: 24 * 60 * 60 },
-            { id: 2, name: "Liste Serveur 1", duration: 90 * 60 },
-            { id: 3, name: "Liste Serveur 2", duration: 120 * 60 },
-            { id: 4, name: "Liste Serveur 3", duration: 180 * 60 },
-            { id: 5, name: "Liste Serveur 4", duration: 90 * 60 },
-            { id: 6, name: "Liste Serveur 5", duration: 90 * 60 }
+            { id: 1, name: "Vote 1", duration: 86400 },
+            { id: 2, name: "Vote 2", duration: 5400 },
+            { id: 3, name: "Vote 3", duration: 7200 },
+            { id: 4, name: "Vote 4", duration: 10800 },
+            { id: 5, name: "Vote 5", duration: 5400 },
+            { id: 6, name: "Vote 6", duration: 5400 }
         ];
 
         if ("Notification" in window) Notification.requestPermission();
@@ -120,7 +119,7 @@
                     timerDisplay.innerText = "READY";
                     card.classList.add('ready');
                     if (Notification.permission === "granted") {
-                        new Notification("VOTE DISPONIBLE", { body: `Le vote pour ${sites[id-1].name} est prêt !` });
+                        new Notification("VOTE DISPONIBLE", { body: `Le ${sites[id-1].name} est prêt !` });
                     }
                 } else {
                     card.classList.remove('ready');
@@ -135,5 +134,4 @@
         createCards();
     </script>
 </body>
-    </html>
-    
+</html>
