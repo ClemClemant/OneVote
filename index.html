@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneVote</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 400px; background: #1e1e1e; border-radius: 15px; padding: 15px; border: 1px solid #333; }
+        .vote-row { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; margin-bottom: 10px; padding: 12px; border-radius: 10px; border-left: 5px solid #555; }
+        .ready { border-left-color: #2ecc71; background: #1b2e23; }
+        .waiting { border-left-color: #e74c3c; opacity: 0.7; }
+        .timer { font-family: monospace; font-size: 1.1em; color: #aaa; }
+        .btn { background: #00d4ff; color: #000; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn:disabled { background: #444; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align:center; color:#00d4ff;">OneBlock Vote</h2>
+        <div id="vote-list"></div>
+    </div>
+    <script>
+        const sites = [
+            { id: 1, label: "Site 1 (24h)", d: 1440 }, { id: 2, label: "Site 2 (1h30)", d: 90 },
+            { id: 3, label: "Site 3 (2h)", d: 120 }, { id: 4, label: "Site 4 (3h)", d: 180 },
+            { id: 5, label: "Site 5 (1h30)", d: 90 }, { id: 6, label: "Site 6 (1h30)", d: 90 }
+        ];
+        let timers = JSON.parse(localStorage.getItem('obf_t')) || {};
+        function start(id, m) {
+            timers[id] = Date.now() + (m * 60000);
+            localStorage.setItem('obf_t', JSON.stringify(timers));
+            window.open('https://oneblockfrance.fr/vote', '_blank');
+            render();
+        }
+        function render() {
+            const list = document.getElementById('vote-list');
+            const now = Date.now();
+            list.innerHTML = '';
+            sites.forEach(s => {
+                const diff = (timers[s.id] || 0) - now;
+                const ok = diff <= 0;
+                const sec = Math.floor(diff/1000);
+                const timeStr = ok ? "DISPO" : `${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m ${sec%60}s`;
+                const div = document.createElement('div');
+                div.className = `vote-row ${ok?'ready':'waiting'}`;
+                div.innerHTML = `<div><b>${s.label}</b><br><span class="timer">${timeStr}</span></div>
+                    <button class="btn" ${ok?'':'disabled'} onclick="start(${s.id},${s.d})">${ok?'VOTER':'ATTENDRE'}</button>`;
+                list.appendChild(div);
+            });
+        }
+        setInterval(render, 1000); render();
+    </script>
+</body>
+</html>
