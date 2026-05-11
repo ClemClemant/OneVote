@@ -5,25 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OneVote</title>
     <style>
-        :root { --bg: #050505; --card: #111111; --ready: #00ff88; }
-        body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
-        .container { width: 100%; max-width: 400px; }
-        .card { background: var(--card); padding: 15px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; margin-bottom: 10px; }
-        .card.ready { border-color: var(--ready); background: #001a0e; }
-        .time { font-family: monospace; font-weight: bold; }
-        button { display: none; background: white; color: black; border: none; padding: 10px 15px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+        :root { --bg: #050505; --card: #111111; --ready: #00ff88; --waiting: #444444; }
+        body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 400px; padding-bottom: 80px; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 2.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px; }
+        .subtitle { color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+        .list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        .card { background: var(--card); padding: 18px 22px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; min-height: 70px; transition: 0.3s; }
+        .card.ready { border-color: var(--ready); background: #001a0e; box-shadow: 0 0 15px rgba(0,255,136,0.1); }
+        .site-label { font-size: 0.7rem; color: #555; font-weight: bold; text-transform: uppercase; }
+        .ready .site-label { color: var(--ready); }
+        .time { font-size: 1.2rem; font-family: monospace; font-weight: bold; color: var(--waiting); }
+        .ready .time { color: var(--ready); }
+        button { display: none; background: white; color: black; border: none; padding: 12px 20px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
         .ready button { display: block; }
+        footer { position: fixed; bottom: 0; width: 100%; padding: 20px 0; font-size: 0.6rem; color: #222; text-align: center; letter-spacing: 3px; font-weight: bold; background: var(--bg); }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align:center">ONEVOTE</h1>
-        <div id="tracker-list"></div>
+        <header>
+            <h1>ONEVOTE</h1>
+            <p class="subtitle">OneBlock France Tracker</p>
+        </header>
+        <div class="list" id="tracker-list"></div>
     </div>
-    <footer style="margin-top:20px;font-size:0.6rem;color:#333">V1.4.3</footer>
+    <footer>LICENCE BY CLEMANT • V1.4.4</footer>
     <script>
         const sites = [{id:1,n:"Site 1",d:86400},{id:2,n:"Site 2",d:10},{id:3,n:"Site 3",d:7200},{id:4,n:"Site 4",d:10800},{id:5,n:"Site 5",d:5400},{id:6,n:"Site 6",d:5400}];
-
+        
         function createCards() {
             const list = document.getElementById('tracker-list');
             list.innerHTML = "";
@@ -32,7 +43,7 @@
                 const c = document.createElement('div');
                 c.className = 'card';
                 c.id = 'card-'+s.id;
-                c.innerHTML = `<div><b>${s.n}</b><div id="time-${s.id}">READY</div></div><button onclick="vote(${s.id},${s.d})">VOTER</button>`;
+                c.innerHTML = `<div class="info"><div class="site-label">${s.n}</div><div class="time" id="time-${s.id}">READY</div></div><button onclick="vote(${s.id},${s.d})">VOTER</button>`;
                 list.appendChild(c);
                 if (e && e > Date.now()) startTimer(s.id, e); else c.classList.add('ready');
             });
@@ -42,14 +53,14 @@
             const e = Date.now() + (dur * 1000);
             localStorage.setItem('site_'+id, e);
             startTimer(id, e);
-            // On demande la permission au clic pour réveiller Android
-            Notification.requestPermission();
+            if ("Notification" in window) Notification.requestPermission();
             window.open('https://oneblockfrance.fr/vote', '_blank');
         }
 
         function startTimer(id, e) {
             const t = document.getElementById('time-'+id);
             const c = document.getElementById('card-'+id);
+            if(!c) return;
             c.classList.remove('ready');
             const itv = setInterval(() => {
                 const d = e - Date.now();
@@ -57,17 +68,14 @@
                     clearInterval(itv);
                     t.innerText = "READY";
                     c.classList.add('ready');
-                    // Notification simplifiée
                     if (Notification.permission === "granted") {
-                        const n = new Notification("VOTE DISPONIBLE", {
-                            body: "C'est l'heure de voter !",
-                            icon: "https://oneblockfrance.fr/favicon.ico",
-                            tag: "vote-notif" // Évite les doublons
-                        });
+                        new Notification("VOTE DISPONIBLE", { body: "Le Site " + id + " est prêt !", icon: "https://oneblockfrance.fr/favicon.ico" });
                     }
                 } else {
                     const s = Math.floor(d / 1000);
-                    t.innerText = Math.floor(s/3600)+"h "+Math.floor((s%3600)/60)+"m "+(s%60)+"s";
+                    const h = Math.floor(s / 3600);
+                    const m = Math.floor((s % 3600) / 60);
+                    t.innerText = h + "h " + m + "m " + (s % 60) + "s";
                 }
             }, 1000);
         }
