@@ -6,11 +6,11 @@
     <title>OneVote</title>
     <style>
         :root {
-            --bg: #0a0a0a;
-            --card: #141414;
+            --bg: #050505;
+            --card: #111111;
             --accent: #ffffff;
             --ready: #00ff88;
-            --waiting: #555555;
+            --waiting: #444444;
         }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -19,32 +19,38 @@
             min-height: 100vh; margin: 0; padding: 20px;
         }
         .container { width: 100%; max-width: 400px; flex-grow: 1; }
-        header { text-align: left; margin-bottom: 30px; margin-top: 10px; }
-        h1 { font-size: 1.8rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
-        p { color: #888; margin: 5px 0 0 0; font-size: 0.9rem; }
+        header { text-align: center; margin-bottom: 40px; margin-top: 20px; }
+        h1 { font-size: 2.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px; color: var(--accent); }
+        .subtitle { color: #666; margin: 5px 0 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; }
         
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        /* Affichage en liste (les unes au-dessus des autres) */
+        .list { display: flex; flex-direction: column; gap: 12px; }
+        
         .card { 
-            background: var(--card); padding: 20px; border-radius: 16px; 
-            text-align: center; border: 1px solid #222; position: relative;
-            transition: all 0.3s ease;
+            background: var(--card); padding: 15px 20px; border-radius: 18px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #1a1a1a; transition: all 0.3s ease;
         }
-        .card.ready { border-color: var(--ready); box-shadow: 0 0 15px rgba(0, 255, 136, 0.1); }
+        .card.ready { border-color: var(--ready); background: #001a0e; }
         
-        .site-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 8px; }
-        .time { font-size: 1.1rem; font-family: monospace; font-weight: bold; color: var(--waiting); margin-bottom: 15px; }
+        .info { text-align: left; }
+        .site-label { font-size: 0.65rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+        .ready .site-label { color: var(--ready); }
+        
+        .time { font-size: 1.1rem; font-family: "SF Mono", monospace; font-weight: 700; color: var(--waiting); }
         .ready .time { color: var(--ready); }
         
         button { 
-            background: transparent; color: white; border: 1px solid #333; 
-            padding: 8px; border-radius: 8px; font-size: 0.8rem;
-            cursor: pointer; width: 100%; transition: all 0.2s;
+            background: #1a1a1a; color: #888; border: none; 
+            padding: 10px 20px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
         }
-        .ready button { background: white; color: black; border-color: white; font-weight: bold; }
+        .ready button { background: var(--ready); color: black; }
         
         footer { 
-            margin-top: 40px; padding: 20px; font-size: 0.7rem; 
-            color: #444; text-transform: uppercase; letter-spacing: 2px;
+            margin-top: 40px; padding: 20px; font-size: 0.65rem; 
+            color: #333; text-transform: uppercase; letter-spacing: 3px; font-weight: bold;
+            text-align: center;
         }
     </style>
 </head>
@@ -53,41 +59,43 @@
     <div class="container">
         <header>
             <h1>ONEVOTE</h1>
-            <p>OneBlock France • Tracker</p>
+            <p class="subtitle">OneBlock France Tracker</p>
         </header>
 
-        <div class="grid" id="tracker-grid"></div>
+        <div class="list" id="tracker-list"></div>
     </div>
 
     <footer>
-        © by Clemant • v1.0
+        LICENSE BY CLEMANT • V1.2
     </footer>
 
     <script>
         const sites = [
-            { id: 1, name: "VOTE #1", duration: 24 * 60 * 60 },
-            { id: 2, name: "VOTE #2", duration: 90 * 60 },
-            { id: 3, name: "VOTE #3", duration: 120 * 60 },
-            { id: 4, name: "VOTE #4", duration: 180 * 60 },
-            { id: 5, name: "VOTE #5", duration: 90 * 60 },
-            { id: 6, name: "VOTE #6", duration: 90 * 60 }
+            { id: 1, name: "Site Principal", duration: 24 * 60 * 60 },
+            { id: 2, name: "Liste Serveur 1", duration: 90 * 60 },
+            { id: 3, name: "Liste Serveur 2", duration: 120 * 60 },
+            { id: 4, name: "Liste Serveur 3", duration: 180 * 60 },
+            { id: 5, name: "Liste Serveur 4", duration: 90 * 60 },
+            { id: 6, name: "Liste Serveur 5", duration: 90 * 60 }
         ];
 
         if ("Notification" in window) Notification.requestPermission();
 
         function createCards() {
-            const grid = document.getElementById('tracker-grid');
+            const list = document.getElementById('tracker-list');
             sites.forEach(site => {
                 const endTime = localStorage.getItem(`site_${site.id}`);
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.id = `card-${site.id}`;
                 card.innerHTML = `
-                    <div class="site-name">${site.name}</div>
-                    <div class="time" id="time-${site.id}">READY</div>
+                    <div class="info">
+                        <div class="site-label">${site.name}</div>
+                        <div class="time" id="time-${site.id}">READY</div>
+                    </div>
                     <button onclick="vote(${site.id}, ${site.duration})">VOTER</button>
                 `;
-                grid.appendChild(card);
+                list.appendChild(card);
                 if (endTime) startTimer(site.id, endTime);
             });
         }
@@ -112,7 +120,7 @@
                     timerDisplay.innerText = "READY";
                     card.classList.add('ready');
                     if (Notification.permission === "granted") {
-                        new Notification("VOTE DISPONIBLE", { body: `Le vote #${id} est prêt !` });
+                        new Notification("VOTE DISPONIBLE", { body: `Le vote pour ${sites[id-1].name} est prêt !` });
                     }
                 } else {
                     card.classList.remove('ready');
@@ -127,4 +135,5 @@
         createCards();
     </script>
 </body>
-</html>
+    </html>
+    
