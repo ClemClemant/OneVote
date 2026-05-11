@@ -8,8 +8,7 @@
         :root { --bg: #050505; --card: #111111; --ready: #00ff88; --waiting: #444444; }
         body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; box-sizing: border-box; }
         .container { width: 100%; max-width: 400px; padding-bottom: 80px; }
-        header { text-align: center; margin-bottom: 20px; }
-        #notif-btn { background: #1a1a1a; color: #00ff88; border: 1px solid #00ff88; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 20px; font-weight: bold; cursor: pointer; }
+        #notif-btn { background: #1a1a1a; color: #00ff88; border: 1px solid #00ff88; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 20px; font-weight: bold; cursor: pointer; display: block; }
         .list { display: flex; flex-direction: column; gap: 10px; }
         .card { background: var(--card); padding: 12px 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; min-height: 60px; }
         .card.ready { border-color: var(--ready); background: #001a0e; }
@@ -24,79 +23,19 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1 style="margin:0;letter-spacing:-1.5px;font-size:2.2rem">ONEVOTE</h1>
-            <p style="color:#666;font-size:0.8rem;letter-spacing:2px;margin:5px 0 0 0">TRACKER ONEBLOCK FRANCE</p>
-        </header>
+        <h1 style="text-align:center;letter-spacing:-1.5px;font-size:2.2rem;margin:0">ONEVOTE</h1>
+        <p style="color:#666;font-size:0.8rem;letter-spacing:2px;text-align:center;margin-bottom:20px">TRACKER ONEBLOCK FRANCE</p>
         <button id="notif-btn" onclick="askNotif()">🔔 ACTIVER LES ALERTES</button>
         <div class="list" id="tracker-list"></div>
     </div>
-    <footer>LICENCE BY CLEMANT • V1.4.1</footer>
+    <footer>LICENCE BY CLEMANT • V1.4.2</footer>
     <script>
-        const sites = [
-            { id: 1, name: "Site 1", duration: 86400 },
-            { id: 2, name: "Site 2", duration: 5400 },
-            { id: 3, name: "Site 3", duration: 7200 },
-            { id: 4, name: "Site 4", duration: 10800 },
-            { id: 5, name: "Site 5", duration: 5400 },
-            { id: 6, name: "Site 6", duration: 5400 }
-        ];
-
-        function askNotif() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(p => {
-                    if (p === "granted") {
-                        alert("Alertes activées !");
-                        document.getElementById('notif-btn').style.display = 'none';
-                    } else { alert("Permission refusée."); }
-                });
-            }
-        }
-
-        function createCards() {
-            const list = document.getElementById('tracker-list');
-            list.innerHTML = "";
-            sites.forEach(site => {
-                const endTime = localStorage.getItem(`site_${site.id}`);
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.id = `card-${site.id}`;
-                card.innerHTML = `<div class="info"><div class="site-label">${site.name}</div><div class="time" id="time-${site.id}">READY</div></div><button onclick="vote(${site.id}, ${site.duration})">VOTER</button>`;
-                list.appendChild(card);
-                if (endTime && endTime > Date.now()) startTimer(site.id, endTime);
-                else card.classList.add('ready');
-            });
-        }
-
-        function vote(id, duration) {
-            const endTime = Date.now() + (duration * 1000);
-            localStorage.setItem(`site_${id}`, endTime);
-            startTimer(id, endTime);
-            window.open('https://oneblockfrance.fr/vote', '_blank');
-        }
-
-        function startTimer(id, endTime) {
-            const timerDisplay = document.getElementById(`time-${id}`);
-            const card = document.getElementById(`card-${id}`);
-            if (!card) return;
-            card.classList.remove('ready');
-            const interval = setInterval(() => {
-                const diff = endTime - Date.now();
-                if (diff <= 0) {
-                    clearInterval(interval);
-                    timerDisplay.innerText = "READY";
-                    card.classList.add('ready');
-                    if (Notification.permission === "granted") new Notification("VOTE DISPONIBLE", { body: "Site " + id + " prêt !" });
-                } else {
-                    const s = Math.floor(diff / 1000);
-                    const h = Math.floor(s / 3600);
-                    const m = Math.floor((s % 3600) / 60);
-                    timerDisplay.innerText = h + "h " + m + "m " + (s % 60) + "s";
-                }
-            }, 1000);
-        }
-
-        if (Notification.permission === "granted") document.getElementById('notif-btn').style.display = 'none';
+        const sites = [{id:1,n:"Site 1",d:86400},{id:2,n:"Site 2",d:5400},{id:3,n:"Site 3",d:7200},{id:4,n:"Site 4",d:10800},{id:5,n:"Site 5",d:5400},{id:6,n:"Site 6",d:5400}];
+        function askNotif(){if("Notification" in window){Notification.requestPermission().then(p=>{if(p==="granted"){alert("Activé !");document.getElementById('notif-btn').style.display='none';}else{alert("Refusé");}});}}
+        function createCards(){const list=document.getElementById('tracker-list');list.innerHTML="";sites.forEach(s=>{const e=localStorage.getItem('site_'+s.id);const c=document.createElement('div');c.className='card';c.id='card-'+s.id;c.innerHTML='<div class="info"><div class="site-label">'+s.n+'</div><div class="time" id="time-'+s.id+'">READY</div></div><button onclick="vote('+s.id+','+s.d+')">VOTER</button>';list.appendChild(c);if(e&&e>Date.now()){startTimer(s.id,e);}else{c.classList.add('ready');}});}
+        function vote(id,dur){const e=Date.now()+(dur*1000);localStorage.setItem('site_'+id,e);startTimer(id,e);window.open('https://oneblockfrance.fr/vote','_blank');}
+        function startTimer(id,e){const t=document.getElementById('time-'+id);const c=document.getElementById('card-'+id);if(!c)return;c.classList.remove('ready');const itv=setInterval(()=>{const d=e-Date.now();if(d<=0){clearInterval(itv);t.innerText="READY";c.classList.add('ready');if(Notification.permission==="granted"){new Notification("VOTE DISPONIBLE",{body:"Site "+id+" prêt !"});}}else{const s=Math.floor(d/1000);t.innerText=Math.floor(s/3600)+"h "+Math.floor((s%3600)/60)+"m "+(s%60)+"s";}},1000);}
+        if(Notification.permission==="granted"){document.getElementById('notif-btn').style.display='none';}
         createCards();
     </script>
 </body>
