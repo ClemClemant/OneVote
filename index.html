@@ -6,22 +6,22 @@
     <title>OneVote</title>
     <style>
         :root { --bg: #050505; --card: #111111; --ready: #00ff88; --waiting: #444444; }
-        body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box; }
+        body { font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
         .container { width: 100%; max-width: 420px; padding-bottom: 40px; }
-        header { text-align: center; margin-bottom: 12px; }
-        h1 { font-size: 1.8rem; font-weight: 900; margin: 0; letter-spacing: -1px; }
-        .subtitle { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; }
-        .list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        /* BANDEAUX PLUS FINS ICI */
-        .card { background: var(--card); padding: 10px 18px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; min-height: 55px; }
+        header { text-align: center; margin-bottom: 15px; }
+        h1 { font-size: 2rem; font-weight: 900; margin: 0; letter-spacing: -1px; }
+        .subtitle { color: #555; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; }
+        .list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        /* TAILLE AJUSTÉE : Un peu plus grand que la version précédente */
+        .card { background: var(--card); padding: 12px 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1a1a1a; min-height: 62px; }
         .card.ready { border-color: var(--ready); background: #001a0e; }
-        .site-label { font-size: 0.65rem; color: #444; font-weight: bold; text-transform: uppercase; }
+        .site-label { font-size: 0.7rem; color: #555; font-weight: bold; text-transform: uppercase; }
         .ready .site-label { color: var(--ready); }
-        .time { font-size: 1.1rem; font-family: monospace; font-weight: bold; color: var(--waiting); }
+        .time { font-size: 1.15rem; font-family: monospace; font-weight: bold; color: var(--waiting); }
         .ready .time { color: var(--ready); }
-        button { display: none; background: white; color: black; border: none; padding: 8px 15px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
+        button { display: none; background: white; color: black; border: none; padding: 10px 18px; border-radius: 11px; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
         .ready button { display: block; }
-        footer { position: fixed; bottom: 0; width: 100%; padding: 10px 0; font-size: 0.55rem; color: #222; text-align: center; letter-spacing: 2px; background: var(--bg); }
+        footer { position: fixed; bottom: 0; width: 100%; padding: 12px 0; font-size: 0.6rem; color: #222; text-align: center; letter-spacing: 2px; background: var(--bg); }
     </style>
 </head>
 <body>
@@ -32,7 +32,7 @@
         </header>
         <div class="list" id="tracker-list"></div>
     </div>
-    <footer>V1.4.8 BY CLEMANT</footer>
+    <footer>V1.5.2 BY CLEMANT</footer>
     <script>
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
         const sites = [
@@ -70,12 +70,18 @@
                     clearInterval(itv); t.innerText = "READY"; c.classList.add('ready');
                     if (Notification.permission === "granted") {
                         navigator.serviceWorker.ready.then(reg => {
-                            reg.showNotification("VOTE DISPONIBLE", { body: "Le Site " + id + " est prêt !", icon: "https://oneblockfrance.fr/favicon.ico", vibrate: [300, 100, 300] });
+                            reg.showNotification("VOTE DISPONIBLE", { 
+                                body: "Le Site " + id + " est prêt !", 
+                                icon: "https://oneblockfrance.fr/favicon.ico", 
+                                vibrate: [300, 100, 300] 
+                            });
                         });
                     }
                 } else {
                     const s = Math.floor(d / 1000);
-                    t.innerText = Math.floor(s/3600) + "h " + Math.floor((s%3600)/60) + "m " + (s%60) + "s";
+                    const h = Math.floor(s / 3600);
+                    const m = Math.floor((s % 3600) / 60);
+                    t.innerText = h + "h " + m + "m " + (s % 60) + "s";
                 }
             }, 1000);
         }
