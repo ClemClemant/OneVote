@@ -1,15 +1,17 @@
 {
-  "name": "OneVote Tracker",
+  "name": "OneVote",
   "short_name": "OneVote",
-  "start_url": "index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
+  "description": "Tracker de vote OneBlock",
   "icons": [
     {
-      "src": "https://oneblockfrance.fr/favicon.ico",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968267.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
