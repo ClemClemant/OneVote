@@ -3,12 +3,12 @@
   "short_name": "OneVote",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#050505",
-  "theme_color": "#050505",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "description": "Tracker de vote OneBlock",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968267.png",
+      "src": "Qpe7GsqWB8RrjBHZXRuq8G4DDArbOEQrZw7vjfnp (1).png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
