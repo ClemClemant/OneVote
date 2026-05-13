@@ -8,6 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <style>
         :root { --bg: #050505; --card: #111111; --ready: #00ff88; --waiting: #444444; }
@@ -21,7 +22,6 @@
         
         .list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         
-        /* Taille de bande intermédiaire (V1.4.8 Style) */
         .card { 
             background: var(--card); 
             padding: 12px 20px; 
@@ -77,101 +77,12 @@
         <div class="list" id="tracker-list"></div>
     </div>
 
-    <footer>V1.4.8 BY CLEMANT</footer>
+    <footer>V1.4.9 BY CLEMANT</footer>
 
     <script>
-        // Enregistrement du Service Worker pour les notifs
+        // Enregistrement du Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-
-        const sites = [
-            {id:1, n:"Site 1", d:86400},
-            {id:2, n:"Site 2", d:5400},
-            {id:3, n:"Site 3", d:7200},
-            {id:4, n:"Site 4", d:10800},
-            {id:5, n:"Site 5", d:5400},
-            {id:6, n:"Site 6", d:5400}
-        ];
-
-        function createCards() {
-            const list = document.getElementById('tracker-list');
-            list.innerHTML = "";
-            sites.forEach(s => {
-                const end = localStorage.getItem('site_'+s.id);
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.id = 'card-'+s.id;
-                card.innerHTML = `
-                    <div class="info">
-                        <div class="site-label">${s.n}</div>
-                        <div class="time" id="time-${s.id}">READY</div>
-                    </div>
-                    <button onclick="vote(${s.id}, ${s.d})">VOTER</button>
-                `;
-                list.appendChild(card);
-                if (end && end > Date.now()) {
-                    startTimer(s.id, end);
-                } else {
-                    card.classList.add('ready');
-                }
-            });
-        }
-
-        function vote(id, duration) {
-            const end = Date.now() + (duration * 1000);
-            localStorage.setItem('site_'+id, end);
-            startTimer(id, end);
-            
-            // Demander la permission pour les notifs
-            if ("Notification" in window) {
-                Notification.requestPermission();
-            }
-            
-            // Ouvre le site de vote
-            window.open('https://oneblockfrance.fr/vote', '_blank');
-        }
-
-        function startTimer(id, end) {
-            const timeDisplay = document.getElementById('time-'+id);
-            const card = document.getElementById('card-'+id);
-            if(!card) return;
-
-            card.classList.remove('ready');
-
-            const interval = setInterval(() => {
-                const remaining = end - Date.now();
-                
-                if (remaining <= 0) {
-                    clearInterval(interval);
-                    timeDisplay.innerText = "READY";
-                    card.classList.add('ready');
-                    sendNotification(id);
-                } else {
-                    const s = Math.floor(remaining / 1000);
-                    const h = Math.floor(s / 3600);
-                    const m = Math.floor((s % 3600) / 60);
-                    const sec = s % 60;
-                    timeDisplay.innerText = h + "h " + m + "m " + sec + "s";
-                }
-            }, 1000);
-        }
-
-        function sendNotification(id) {
-            if (Notification.permission === "granted") {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification("VOTE DISPONIBLE", {
-                        body: "Le Site " + id + " est prêt !",
-                        icon: "https://oneblockfrance.fr/favicon.ico",
-                        vibrate: [300, 100, 300],
-                        requireInteraction: true,
-                        tag: 'vote-notif'
-                    });
-                });
-            }
-        }
-
-        createCards();
-    </script>
-</body>
-</html>
+            navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('SW Registered'))
+            .catch(err => console.log('SW
+        
