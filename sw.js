@@ -1,26 +1,60 @@
-self.addEventListener('message', event => {
-    if (event.data.type === 'SCHEDULE_NOTIFICATION') {
-        const { id, delay } = event.data;
+// Écoute les messages venant de index.html
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'SCHEDULE_NOTIFICATION') {
+        const { siteId, siteName, delay } = event.data;
 
-        // On utilise un setTimeout ici. 
-        // Note : Sur certains mobiles, le SW peut être tué si le délai est trop long (>5-10 min).
-        // Pour des délais de plusieurs heures, seule une API Push (serveur) est 100% garantie.
+        // On crée un minuteur dans le Service Worker
+        // Attention : Si le délai est très long (ex: 24h), le navigateur 
+        // peut suspendre le SW. Mais pour quelques heures, cela fonctionne souvent mieux.
         setTimeout(() => {
-            self.registration.showNotification("VOTE DISPONIBLE", {
-                body: "Le Site " + id + " est prêt !",
-                icon: "icon.png", // Assure-toi d'avoir une icône locale
-                vibrate: [300, 100, 300],
-                requireInteraction: true,
-                tag: 'vote-' + id,
-                renotify: true
-            });
+            const title = "VOTE DISPONIBLE";
+            const options = {
+                body: `${siteName} est de nouveau prêt pour un vote !`,
+                icon: "https://oneblockfrance.fr/favicon.ico",
+                badge: "https://oneblockfrance.fr/favicon.ico",
+                vibrate: [200, 100, 200, 100, 400],
+                tag: 'vote-' + siteId,
+                renotify: true,
+                requireInteraction: true, // Garde la notif jusqu'à l'action de l'utilisateur
+                data: {
+                    url: 'https://clemclemant.github.io/'
+                }
+            };
+
+            self.registration.showNotification(title, options);
         }, delay);
     }
 });
 
+// Gère le clic sur la notification
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
+    
+    // Récupère l'URL transmise ou utilise l'URL par défaut
+    const urlToOpen = event.notification.data.url || 'https://clemclemant.github.io/';
+
     event.waitUntil(
-        clients.openWindow('https://clemclemant.github.io/')
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+            // Si l'app est déjà ouverte, on se contente de la mettre au premier plan
+            for (let i = 0; i < clientList.length; i++) {
+                let client = clientList[i];
+                if (client.url === urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Sinon, on ouvre une nouvelle fenêtre
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
     );
+});
+
+// Installation et activation immédiate
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
 });
