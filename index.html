@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OneVote Tracker</title>
+    <title>Suivi OneVote</title>
     <link rel="manifest" href="manifest.json">
     <style>
         body {
@@ -38,24 +38,20 @@
     <p class="status" id="status">Notifications désactivées</p>
 
     <script>
-        // 1. Enregistrement du Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
-        // 2. Demander la permission au démarrage
         window.onload = () => {
             Notification.requestPermission().then(perm => {
                 if(perm === 'granted') document.getElementById('status').innerText = "Notifications actives ✅";
             });
         };
 
-        // 3. Fonction pour lancer le chrono
         function launchTimer(minutes) {
             const ms = minutes * 60 * 1000;
             const end = Date.now() + ms;
 
-            // ON PRÉVIENT LE TÉLÉPHONE DE SONNER (MÊME EN VEILLE)
             if (navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
                     type: 'START_TIMER',
@@ -63,7 +59,6 @@
                 });
             }
 
-            // Affichage visuel du chrono sur la page
             const interval = setInterval(() => {
                 const remainder = end - Date.now();
                 if (remainder <= 0) {
