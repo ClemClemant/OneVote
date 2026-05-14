@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi OneVote</title>
+    <title>OneVote Tracker</title>
     <link rel="manifest" href="manifest.json">
     <style>
         body {
@@ -16,59 +16,76 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            text-align: center;
         }
-        .timer { font-size: 3rem; font-weight: bold; margin: 20px 0; }
+        .timer { font-size: 3.5rem; font-weight: bold; margin: 20px 0; }
         button {
-            padding: 15px 30px;
-            font-size: 1.2rem;
+            padding: 15px 40px;
+            font-size: 1.3rem;
             background-color: #ffffff;
+            color: black;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: bold;
         }
-        .status { color: #555; font-size: 0.9rem; margin-top: 10px; }
+        .status { color: #666; font-size: 0.8rem; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <h1>OneVote</h1>
     <div class="timer" id="display">01:30:00</div>
-    <button onclick="launchTimer(90)">Lancer le Vote</button>
-    <p class="status" id="status">Notifications désactivées</p>
+    <button id="btnVote">LANCER LE VOTE</button>
+    <p class="status" id="status">Chargement...</p>
 
     <script>
+        // 1. Enregistre le Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
-        window.onload = () => {
-            Notification.requestPermission().then(perm => {
-                if(perm === 'granted') document.getElementById('status').innerText = "Notifications actives ✅";
+        // 2. Demande les permissions au clic (mieux accepté par Android)
+        const btn = document.getElementById('btnVote');
+        const status = document.getElementById('status');
+
+        btn.onclick = () => {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    startGlobalTimer(90);
+                } else {
+                    alert("Active les notifications pour être prévenu !");
+                }
             });
         };
 
-        function launchTimer(minutes) {
+        function startGlobalTimer(minutes) {
             const ms = minutes * 60 * 1000;
-            const end = Date.now() + ms;
+            const endTime = Date.now() + ms;
 
+            // DIT AU SERVICE WORKER DE LANCER L'ALERTE DANS LE FUTUR
             if (navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
                     type: 'START_TIMER',
                     delay: ms
                 });
+                status.innerText = "Notification programmée ✅";
             }
 
-            const interval = setInterval(() => {
-                const remainder = end - Date.now();
-                if (remainder <= 0) {
-                    clearInterval(interval);
+            // Affichage visuel sur la page
+            const update = setInterval(() => {
+                const now = Date.now();
+                const diff = endTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(update);
                     document.getElementById('display').innerText = "VOTEZ !";
                     return;
                 }
-                const h = Math.floor(remainder / 3600000);
-                const m = Math.floor((remainder % 3600000) / 60000);
-                const s = Math.floor((remainder % 60000) / 1000);
+
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
                 document.getElementById('display').innerText = 
                     `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             }, 1000);
