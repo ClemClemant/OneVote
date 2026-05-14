@@ -1,31 +1,83 @@
-<script>
-// 1. Enregistrement du Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-}
-
-// 2. Fonction pour demander la permission (à appeler au clic sur un bouton)
-function requestNotificationPermission() {
-    Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-            console.log('Notification autorisée');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneVote Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            background-color: #050505;
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
         }
-    });
-}
+        .timer { font-size: 3rem; font-weight: bold; margin: 20px 0; }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .status { color: #555; font-size: 0.9rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
 
-// 3. TA FONCTION DE CHRONO (à adapter selon ton code)
-// Quand le chrono commence, on envoie l'info au Service Worker
-function startTimer(minutes) {
-    const ms = minutes * 60 * 1000;
-    
-    // On prévient le Service Worker de sonner dans X minutes
-    if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-            type: 'START_TIMER',
-            delay: ms
-        });
-    }
-    
-    // Ici, garde ton code actuel pour l'affichage visuel du chrono
-}
-</script>
+    <h1>OneVote</h1>
+    <div class="timer" id="display">01:30:00</div>
+    <button onclick="launchTimer(90)">Lancer le Vote</button>
+    <p class="status" id="status">Notifications désactivées</p>
+
+    <script>
+        // 1. Enregistrement du Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // 2. Demander la permission au démarrage
+        window.onload = () => {
+            Notification.requestPermission().then(perm => {
+                if(perm === 'granted') document.getElementById('status').innerText = "Notifications actives ✅";
+            });
+        };
+
+        // 3. Fonction pour lancer le chrono
+        function launchTimer(minutes) {
+            const ms = minutes * 60 * 1000;
+            const end = Date.now() + ms;
+
+            // ON PRÉVIENT LE TÉLÉPHONE DE SONNER (MÊME EN VEILLE)
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'START_TIMER',
+                    delay: ms
+                });
+            }
+
+            // Affichage visuel du chrono sur la page
+            const interval = setInterval(() => {
+                const remainder = end - Date.now();
+                if (remainder <= 0) {
+                    clearInterval(interval);
+                    document.getElementById('display').innerText = "VOTEZ !";
+                    return;
+                }
+                const h = Math.floor(remainder / 3600000);
+                const m = Math.floor((remainder % 3600000) / 60000);
+                const s = Math.floor((remainder % 60000) / 1000);
+                document.getElementById('display').innerText = 
+                    `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
