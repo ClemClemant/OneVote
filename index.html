@@ -3,61 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OneVote</title>
+    <title>OneVote Multi</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        body { background: #050505; color: white; font-family: sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .timer { font-size: 3.5rem; font-weight: bold; margin: 20px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
-        button { padding: 15px; font-size: 1rem; background: white; border: none; border-radius: 10px; font-weight: bold; color: black; }
-        .btn-test { background: #ffcc00; grid-column: span 2; margin-top: 10px; }
+        body { 
+            background: #050505; color: white; font-family: sans-serif; text-align: center; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100vh; margin: 0; 
+        }
+        h1 { margin-bottom: 30px; letter-spacing: 2px; }
+        .grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; 
+            width: 90%; max-width: 450px; 
+        }
+        /* Style des boutons */
+        .btn-vote { 
+            background: white; color: black; border: none; border-radius: 15px; 
+            padding: 20px 10px; font-weight: bold; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.1s;
+        }
+        .btn-vote:active { transform: scale(0.95); }
+        .btn-label { font-size: 1.1rem; }
+        /* Style du chrono gris sur le bouton */
+        .btn-timer { color: #888; font-size: 0.9rem; margin-top: 5px; font-family: monospace; }
+        
+        #status { color: #444; font-size: 0.8rem; margin-top: 30px; }
     </style>
 </head>
 <body>
+
     <h1>OneVote</h1>
-    <div class="timer" id="display">--:--:--</div>
+    
     <div class="grid">
-        <button onclick="launch(90)">1h30</button>
-        <button onclick="launch(120)">2h</button>
-        <button onclick="launch(180)">3h</button>
-        <button onclick="launch(1440)">24h</button>
-        <button class="btn-test" onclick="launch(0.333)">🧪 TEST 20s</button>
+        <button class="btn-vote" onclick="launch(90, 'btn1')">
+            <span class="btn-label">VOTE 1h30</span>
+            <span class="btn-timer" id="btn1">--:--:--</span>
+        </button>
+
+        <button class="btn-vote" onclick="launch(120, 'btn2')">
+            <span class="btn-label">VOTE 2h</span>
+            <span class="btn-timer" id="btn2">--:--:--</span>
+        </button>
+
+        <button class="btn-vote" onclick="launch(180, 'btn3')">
+            <span class="btn-label">VOTE 3h</span>
+            <span class="btn-timer" id="btn3">--:--:--</span>
+        </button>
+
+        <button class="btn-vote" onclick="launch(1440, 'btn4')">
+            <span class="btn-label">VOTE 24h</span>
+            <span class="btn-timer" id="btn4">--:--:--</span>
+        </button>
     </div>
+
+    <p id="status">Notifications Prêtes ✅</p>
 
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
-        function launch(mins) {
+        // Objet pour stocker les intervalles de chaque bouton
+        const activeIntervals = {};
+
+        function launch(mins, btnId) {
             Notification.requestPermission().then(perm => {
-                if (perm !== 'granted') return alert("Active les notifs !");
+                if (perm !== 'granted') return alert("Active les notifications !");
 
                 const ms = mins * 60 * 1000;
-                
-                // On attend que le SW soit prêt avant d'envoyer le message
-                navigator.serviceWorker.ready.then(registration => {
-                    registration.active.postMessage({
-                        type: 'START_TIMER',
-                        delay: ms
-                    });
-                });
+                const endTime = Date.now() + ms;
 
-                // Chrono visuel
-                const end = Date.now() + ms;
-                const interval = setInterval(() => {
-                    const diff = end - Date.now();
-                    if (diff <= 0) {
-                        clearInterval(interval);
-                        document.getElementById('display').innerText = "VOTEZ !";
-                        return;
-                    }
-                    const m = Math.floor((diff % 3600000) / 60000);
-                    const s = Math.floor((diff % 60000) / 1000);
-                    document.getElementById('display').innerText = `${m}:${s.toString().padStart(2,'0')}`;
-                }, 1000);
+                // 1. On sauvegarde l'heure de fin pour ce bouton précis
+                localStorage.setItem(btnId, endTime);
+
+                // 2. On prévient le Service Worker pour la notification (fond)
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'START_TIMER',
+                        delay: ms,
+                        label: mins < 60 ? mins + "m" : (mins/60) + "h"
+                    });
+                }
+
+                // 3. On lance le décompte visuel gris sur le bouton
+                startVisualTimer(btnId, endTime);
             });
         }
+
+        function startVisualTimer(btnId, endTime) {
+            const display = document.getElementById(btnId);
+            
+            if (activeIntervals[btnId]) clearInterval(activeIntervals[btnId]);
+
+            activeIntervals[btnId] = setInterval(() => {
+                const now = Date.now();
+                const diff = endTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(activeIntervals[btnId]);
+                    display.innerText = "VOTEZ !";
+                    display.style.color = "red";
+                    return;
+                }
+
+                display.style.color = "#888";
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                
+                display.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Au chargement, on relance les chronos qui étaient déjà en cours
+        window.onload = () => {
+            ['btn1', 'btn2', 'btn3', 'btn4'].forEach(id => {
+                const savedEnd = localStorage.getItem(id);
+                if (savedEnd && parseInt(savedEnd) > Date.now()) {
+                    startVisualTimer(id, parseInt(savedEnd));
+                }
+            });
+        };
     </script>
 </body>
 </html>
