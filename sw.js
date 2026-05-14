@@ -1,28 +1,37 @@
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.action === 'SCHEDULE_NOTIFICATION') {
-        const { siteId, siteName, delay } = event.data;
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
 
-        // Le setTimeout dans un Service Worker a des limites sur mobile
-        // Mais c'est la seule option sans serveur externe.
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
+});
+
+// Écoute les messages de l'application pour lancer un chrono
+self.addEventListener('message', (event) => {
+    if (event.data.type === 'START_TIMER') {
+        const delay = event.data.delay; // en millisecondes
+        
         setTimeout(() => {
-            self.registration.showNotification("VOTE DISPONIBLE", {
-                body: siteName + " est prêt !",
-                icon: "https://oneblockfrance.fr/favicon.ico",
-                vibrate: [200, 100, 200],
-                tag: 'vote-' + siteId,
+            self.registration.showNotification('OneVote', {
+                body: 'Le compte à rebours est fini ! C\'est l\'heure de voter.',
+                icon: 'icon.png',
+                badge: 'icon.png',
+                vibrate: [200, 100, 200, 100, 200],
+                tag: 'vote-notification',
                 renotify: true,
-                requireInteraction: true
+                requireInteraction: true // La notif reste jusqu'à ce que tu cliques
             });
         }, delay);
     }
 });
 
+// Quand on clique sur la notification, ça ouvre l'app
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     event.waitUntil(
-        clients.openWindow('https://clemclemant.github.io/')
+        clients.matchAll({ type: 'window' }).then((clientList) => {
+            if (clientList.length > 0) return clientList[0].focus();
+            return clients.openWindow('./');
+        })
     );
 });
-
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
