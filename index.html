@@ -3,74 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OneVote Tracker</title>
+    <title>OneVote</title>
     <link rel="manifest" href="manifest.json">
     <style>
         body { background: #050505; color: white; font-family: sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .timer { font-size: 3.5rem; font-weight: bold; margin: 10px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; width: 90%; max-width: 400px; }
-        button { padding: 15px; font-size: 1rem; background: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: black; }
-        .btn-test { background: #ffcc00; grid-column: span 2; }
-        button:active { transform: scale(0.95); }
-        #status { color: #666; font-size: 0.8rem; margin-top: 15px; }
+        .timer { font-size: 3.5rem; font-weight: bold; margin: 20px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
+        button { padding: 15px; font-size: 1rem; background: white; border: none; border-radius: 10px; font-weight: bold; color: black; }
+        .btn-test { background: #ffcc00; grid-column: span 2; margin-top: 10px; }
     </style>
 </head>
 <body>
-
     <h1>OneVote</h1>
     <div class="timer" id="display">--:--:--</div>
-    
     <div class="grid">
-        <button onclick="launch(90)">VOTE 1h30</button>
-        <button onclick="launch(120)">VOTE 2h</button>
-        <button onclick="launch(180)">VOTE 3h</button>
-        <button onclick="launch(1440)">VOTE 24h</button>
-        <button class="btn-test" onclick="launch(0.333)">🧪 TEST RAPIDE (20s)</button>
+        <button onclick="launch(90)">1h30</button>
+        <button onclick="launch(120)">2h</button>
+        <button onclick="launch(180)">3h</button>
+        <button onclick="launch(1440)">24h</button>
+        <button class="btn-test" onclick="launch(0.333)">🧪 TEST 20s</button>
     </div>
 
-    <p id="status">En attente...</p>
-
     <script>
-        // Enregistrement du Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
-        let activeInterval;
-
         function launch(mins) {
             Notification.requestPermission().then(perm => {
-                if (perm !== 'granted') {
-                    alert("Tu dois autoriser les notifications !");
-                    return;
-                }
+                if (perm !== 'granted') return alert("Active les notifs !");
 
                 const ms = mins * 60 * 1000;
-                const end = Date.now() + ms;
-
-                // IMPORTANT : On envoie l'ordre au Service Worker pour le hors-app
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
+                
+                // On attend que le SW soit prêt avant d'envoyer le message
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.active.postMessage({
                         type: 'START_TIMER',
                         delay: ms
                     });
-                    document.getElementById('status').innerText = "Notification programmée ✅";
-                }
+                });
 
-                // Affichage visuel sur la page
-                if (activeInterval) clearInterval(activeInterval);
-                activeInterval = setInterval(() => {
+                // Chrono visuel
+                const end = Date.now() + ms;
+                const interval = setInterval(() => {
                     const diff = end - Date.now();
                     if (diff <= 0) {
-                        clearInterval(activeInterval);
+                        clearInterval(interval);
                         document.getElementById('display').innerText = "VOTEZ !";
                         return;
                     }
-                    const h = Math.floor(diff / 3600000);
                     const m = Math.floor((diff % 3600000) / 60000);
                     const s = Math.floor((diff % 60000) / 1000);
-                    document.getElementById('display').innerText = 
-                        `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                    document.getElementById('display').innerText = `${m}:${s.toString().padStart(2,'0')}`;
                 }, 1000);
             });
         }
