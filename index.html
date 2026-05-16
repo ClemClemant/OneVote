@@ -54,7 +54,7 @@
         </button>
     </div>
 
-    <p class="status" id="status">Système prêt ✅</p>
+    <p class="status" id="status">Prêt pour le vote ✅</p>
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -64,18 +64,16 @@
         const activeIntervals = {};
 
         function handleButtonClick(mins, btnId, label) {
-            const display = document.getElementById(btnId);
-            
-            // Si le chrono est fini, on redirige vers le site de vote
-            if (display.innerText === "VOTEZ !") {
-                window.open('https://oneblockfrance.fr/vote', '_blank');
-                return;
-            }
+            // 1. Redirection immédiate vers le vrai Chrome pour éviter la bannière de bug
+            const url = 'https://oneblockfrance.fr/vote';
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.click();
 
-            // Sinon, on lance le chrono
+            // 2. Lancement du décompte et demande de notif
             Notification.requestPermission().then(perm => {
-                if (perm !== 'granted') return alert("Autorise les notifications !");
-
                 const ms = mins * 60 * 1000;
                 const endTime = Date.now() + ms;
                 localStorage.setItem(btnId, endTime);
@@ -113,7 +111,6 @@
             }, 1000);
         }
 
-        // Relance les chronos au rafraîchissement de la page
         window.onload = () => {
             ['btn1', 'btn2', 'btn3', 'btn4'].forEach(id => {
                 const savedEnd = localStorage.getItem(id);
