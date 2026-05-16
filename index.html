@@ -64,19 +64,13 @@
         const activeIntervals = {};
 
         function handleButtonClick(mins, btnId, label) {
-            // 1. Redirection immédiate vers le vrai Chrome pour éviter la bannière de bug
-            const url = 'https://oneblockfrance.fr/vote';
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            a.click();
-
-            // 2. Lancement du décompte et demande de notif
+            // 1. Demande de permission et lancement immédiat du décompte
             Notification.requestPermission().then(perm => {
                 const ms = mins * 60 * 1000;
                 const endTime = Date.now() + ms;
                 localStorage.setItem(btnId, endTime);
+
+                startVisualTimer(btnId, endTime);
 
                 if (navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({
@@ -85,7 +79,9 @@
                         label: label
                     });
                 }
-                startVisualTimer(btnId, endTime);
+
+                // 2. Redirection directe (méthode standard pour éviter les blocages de sécurité d'Android)
+                window.open('https://oneblockfrance.fr/vote', '_blank');
             });
         }
 
