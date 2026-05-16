@@ -1,7 +1,6 @@
 self.addEventListener('install', (e) => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
 
-// Gestion de la notification en arrière-plan
 self.addEventListener('message', (event) => {
     if (event.data.type === 'START_TIMER') {
         const delay = event.data.delay;
@@ -9,9 +8,9 @@ self.addEventListener('message', (event) => {
 
         setTimeout(() => {
             self.registration.showNotification('OneVote', {
-                body: `Le délai pour le vote ${label} est terminé !`,
+                body: `Le délai pour le vote ${label} est fini ! Relance ton vote.`,
                 icon: 'icon.png',
-                vibrate: [500, 110, 500, 110, 450, 110, 200, 110],
+                vibrate: [500, 150, 500],
                 tag: 'vote-' + label,
                 renotify: true,
                 requireInteraction: true
@@ -20,7 +19,6 @@ self.addEventListener('message', (event) => {
     }
 });
 
-// Redirection vers le site quand on clique sur la notification
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     event.waitUntil(
