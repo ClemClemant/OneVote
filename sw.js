@@ -11,9 +11,9 @@ self.addEventListener('message', (event) => {
                 body: `Le délai pour le vote ${label} est fini ! Relance ton vote.`,
                 icon: 'icon.png',
                 vibrate: [500, 150, 500],
-                tag: 'vote-' + label, 
+                tag: 'vote-' + label,
                 renotify: true,
-                requireInteraction: true 
+                requireInteraction: true
             });
         }, delay);
     }
