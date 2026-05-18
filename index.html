@@ -25,7 +25,6 @@
         .btn-vote:active { transform: scale(0.95); }
         .btn-label { font-size: 1.1rem; }
         .btn-timer { color: #888; font-size: 0.9rem; margin-top: 8px; font-family: monospace; }
-        .status { color: #444; font-size: 0.8rem; margin-top: 30px; }
     </style>
 </head>
 <body>
@@ -54,34 +53,37 @@
         </button>
     </div>
 
-    <p class="status" id="status">Prêt pour le vote ✅</p>
-
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log("Service Worker enregistré !");
+            });
         }
 
         const activeIntervals = {};
 
         function handleButtonClick(mins, btnId, label) {
-            // 1. Demande de permission et lancement immédiat du décompte
             Notification.requestPermission().then(perm => {
+                if (perm !== 'granted') return alert("Tu dois accepter les notifications !");
+
                 const ms = mins * 60 * 1000;
                 const endTime = Date.now() + ms;
                 localStorage.setItem(btnId, endTime);
 
+                // 1. On démarre immédiatement le chrono en local
                 startVisualTimer(btnId, endTime);
 
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
+                // 2. On transmet l'alerte au Service Worker rattaché à l'application
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.active.postMessage({
                         type: 'START_TIMER',
                         delay: ms,
                         label: label
                     });
-                }
-
-                // 2. Redirection directe (méthode standard pour éviter les blocages de sécurité d'Android)
-                window.open('https://oneblockfrance.fr/vote', '_blank');
+                    
+                    // 3. SEULEMENT QUAND LE SERVICE WORKER A REÇU L'ORDRE : On ouvre le site
+                    window.open('https://oneblockfrance.fr/vote', '_blank');
+                });
             });
         }
 
