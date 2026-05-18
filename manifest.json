@@ -1,17 +1,23 @@
 {
-  "name": "OneVote",
+  "name": "OneVote Tracker",
   "short_name": "OneVote",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "description": "Tracker de vote OneBlock",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "Qpe7GsqWB8RrjBHZXRuq8G4DDArbOEQrZw7vjfnp (1).png",
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
